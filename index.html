@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Notes Hub</title>
+<style>
+:root{
+  --bg:#0b1f18;
+  --surface:#122e24;
+  --border:#1f4a3a;
+  --text:#eafbf3;
+  --muted:#7fae9c;
+  --accent:#34d399;
+  --sem1:#6ee7b7;
+  --sem2:#059669;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Arial,sans-serif;}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:16px 24px;gap:16px;flex-wrap:wrap;
+}
+.topbar .brand{font-size:18px;font-weight:600;}
+.topbar .brand span{color:var(--accent);}
+#search{
+  background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:8px 14px;border-radius:8px;font-size:14px;min-width:200px;
+}
+.tabs{display:flex;gap:4px;padding:16px 24px 0;border-bottom:1px solid var(--border);}
+.tabs button{
+  background:none;border:none;color:var(--muted);font-size:14px;
+  padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;
+}
+.tabs button.active{color:var(--text);border-color:var(--accent);}
+main{padding:28px 24px 48px;max-width:960px;margin:0 auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-left:3px solid var(--sem1);border-radius:10px;padding:16px;
+  transition:border-color .15s ease,transform .15s ease;
+}
+.card.sem2{border-left-color:var(--sem2);}
+.card:hover{transform:translateY(-2px);border-color:var(--accent);}
+.card h3{font-size:15px;margin-bottom:10px;}
+.card a{display:block;color:var(--accent);text-decoration:none;font-size:13px;padding:3px 0;}
+.card a:hover{text-decoration:underline;}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:32px 0;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Class <span>Notes</span> Hub</div>
+  <input type="text" id="search" placeholder="Search units...">
+</header>
+
+<nav class="tabs">
+  <button onclick="setSem(0)" class="active" id="btnAll">All</button>
+  <button onclick="setSem(1)" id="btn1">Semester 1</button>
+  <button onclick="setSem(2)" id="btn2">Semester 2</button>
+</nav>
+
+<main>
+  <div class="grid" id="cards"></div>
+</main>
+
+<script>
+var BASE = "https://YOUR-BUCKET.s3.YOUR-REGION.amazonaws.com/public/";
+var sem = 0;
+var query = "";
+
+var units = [
+  {name:"Intro to Programming", sem:1, files:["Week-1-Notes.pdf","Week-2-Notes.pdf"]},
+  {name:"Calculus I", sem:1, files:["Week-1-Notes.pdf","Week-2-Notes.pdf"]},
+  {name:"Networks", sem:2, files:["Week-1-Notes.pdf","Week-2-Notes.pdf"]},
+  {name:"Databases", sem:2, files:["Week-1-Notes.pdf","Week-2-Notes.pdf"]}
+];
+
+function setSem(n){
+  sem = n;
+  document.getElementById('btnAll').classList.toggle('active', n===0);
+  document.getElementById('btn1').classList.toggle('active', n===1);
+  document.getElementById('btn2').classList.toggle('active', n===2);
+  render();
+}
+
+document.getElementById('search').addEventListener('input', function(e){
+  query = e.target.value.toLowerCase();
+  render();
+});
+
+function render(){
+  var box = document.getElementById('cards');
+  box.innerHTML = '';
+  units.filter(function(u){
+    return (sem===0 || u.sem===sem) && u.name.toLowerCase().indexOf(query) !== -1;
+  }).forEach(function(u){
+    var div = document.createElement('div');
+    div.className = 'card sem' + u.sem;
+    var links = u.files.map(function(f){
+      return '<a href="'+BASE+f+'" target="_blank">'+f+'</a>';
+    }).join('');
+    div.innerHTML = '<h3>'+u.name+'</h3>'+links;
+    box.appendChild(div);
+  });
+  if(box.innerHTML===''){
+    box.innerHTML = '<p class="empty">No units found.</p>';
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
